@@ -1,20 +1,18 @@
-# Persona AI Chatbot
+# AI Code Assistant Agent
 
-This project is a full-stack web application that demonstrates how to build a persona-based AI chatbot. It uses a React frontend, a Node.js/Express backend, and the OpenAI API to simulate a conversation with a specific personality.
+This project is a command-line AI agent that can help you with your coding tasks. It uses a "Chain of Thought" like process to understand your requests, break them down into smaller steps, and use a set of tools to accomplish them.
 
 ## Features
 
--   **Persona-Driven AI:** The AI's personality is shaped by a detailed system prompt.
--   **Client-Server Architecture:** A secure design where the frontend UI is separated from the backend logic and API key management.
--   **Chat History:** The application maintains the context of the conversation.
--   **Modern UI:** A clean, responsive chat interface built with React.
+-   **Agentic System:** A powerful agent that can reason and decide which tools to use to solve a problem.
+-   **Chain of Thought:** The agent follows a `START`, `THINK`, `TOOL`, `OBSERVE`, `OUTPUT` process, making its reasoning process transparent.
+-   **Rich Toolset:** A set of tools for file system operations, code generation, and command execution.
+-   **Interactive CLI:** An interactive command-line interface to interact with the agent.
+-   **Powered by OpenAI:** Uses the OpenAI API to understand natural language and generate code.
 
 ## Project Structure
 
-The project is divided into two main parts:
-
--   `persona-backend/`: A Node.js Express server that handles API requests, communicates with the OpenAI API, and contains the core persona logic.
--   `persona-ui/`: A React application created with Create React App that provides the user interface.
+The project is contained within the `code-assitant-backend/` directory.
 
 ---
 
@@ -27,13 +25,13 @@ Follow these instructions to get the project running on your local machine.
 -   Node.js and npm installed.
 -   An OpenAI API key.
 
-### 1. Backend Setup
+### Setup
 
-First, set up and start the backend server.
+First, set up and start the agent.
 
 ```bash
 # 1. Navigate to the backend directory
-cd persona-backend
+cd code-assitant-backend
 
 # 2. Create an environment file
 # Create a new file named .env in this directory.
@@ -44,29 +42,40 @@ cd persona-backend
 # 4. Install dependencies
 npm install
 
-# 5. Start the server
-npm start
+# 5. Run the agent
+node index.js
 ```
 
-The backend server will now be running on `http://localhost:3001`.
-
-### 2. Frontend Setup
-
-Next, set up and start the frontend application in a **new terminal**.
-
-```bash
-# 1. Navigate to the frontend directory
-cd persona-ui
-
-# 2. Install dependencies
-npm install
-
-# 3. Start the React application
-npm start
-```
-
-The application will automatically open in your web browser at `http://localhost:3000`.
+The agent will then prompt you for a command.
 
 ---
 
-Now you can interact with the Persona AI Chatbot!
+## Available Tools
+
+The agent has access to the following tools:
+
+-   `create_file(path: string)`: Creates an empty file.
+-   `list_files(directory: string)`: Lists all files in a given directory.
+-   `read_file(path: string)`: Reads the contents of a file.
+-   `write_file(path: string, content: string)`: Writes content to a file.
+-   `generate_code(prompt: string)`: Generates code based on a prompt.
+-   `execute_command(command: string)`: Executes a shell command on the user's machine.
+
+## Example Usage
+
+Here's an example of how you can interact with the agent:
+
+**You:**
+> I want to create a simple web server in Node.js. Please create a file named `server.js` and write the code for a "hello world" express server in it.
+
+**Agent's process:**
+
+```
+🔥 The user wants to create a "hello world" express server in a file named server.js.
+    🧠 First, I need to generate the code for the express server. I will use the `generate_code` tool for this.
+🛠️: generate_code({"prompt":"create a hello world express server"}) = const express = require('express'); ...
+    🧠 Now that I have the code, I need to write it to a file named `server.js`. I will use the `write_file` tool for this.
+🛠️: write_file({"path":"server.js","content":"const express = require('express'); ..."}) = Successfully wrote to server.js
+    🧠 I have successfully created the `server.js` file with the express server code.
+🤖 I have created the `server.js` file with a "hello world" express server for you.
+```
