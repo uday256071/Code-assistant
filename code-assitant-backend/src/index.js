@@ -1,87 +1,7 @@
-require("dotenv").config();
-const { OpenAI } = require("openai");
-const { exec } = require("child_process");
-const fs = require("fs").promises;
-const prompts = require("prompts");
-
-// --- Tool Implementations ---
-
-async function create_file({ path }) {
-  try {
-    await fs.writeFile(path, "");
-    return `Successfully created file: ${path}`;
-  } catch (error) {
-    return `Error creating file: ${error.message}`;
-  }
-}
-
-async function list_files({ directory = "." }) {
-  try {
-    const files = await fs.readdir(directory);
-    return files.join("\n");
-  } catch (error) {
-    return `Error listing files: ${error.message}`;
-  }
-}
-
-async function read_file({ path }) {
-  try {
-    return await fs.readFile(path, "utf-8");
-  } catch (error) {
-    return `Error reading file: ${error.message}`;
-  }
-}
-
-async function write_file({ path, content }) {
-  try {
-    await fs.writeFile(path, content);
-    return `Successfully wrote to ${path}`;
-  } catch (error) {
-    return `Error writing file: ${error.message}`;
-  }
-}
-
-async function generate_code({ prompt }) {
-  try {
-    const stream = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [{ role: "user", content: prompt }],
-      stream: true,
-    });
-    let result = "";
-    for await (const chunk of stream) {
-      result += chunk.choices[0]?.delta?.content || "";
-    }
-    return result;
-  } catch (error) {
-    return `Error generating code: ${error.message}`;
-  }
-}
-
-async function execute_command({ command }) {
-  return new Promise((resolve, reject) => {
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        resolve(`Error: ${error.message}`);
-        return;
-      }
-      if (stderr) {
-        resolve(`Stderr: ${stderr}`);
-        return;
-      }
-      resolve(stdout);
-    });
-  });
-}
-
-const TOOL_MAP = {
-  create_file,
-  list_files,
-  read_file,
-  write_file,
-  generate_code,
-  execute_command,
-};
+require('dotenv').config();
+const { OpenAI } = require('openai');
+const prompts = require('prompts');
+const { TOOL_MAP } = require('./tools.js');
 
 const openai = new OpenAI();
 
@@ -118,24 +38,24 @@ async function main() {
   `;
 
   const { prompt } = await prompts({
-    type: "text",
-    name: "prompt",
-    message: "What would you like to do?",
+    type: 'text',
+    name: 'prompt',
+    message: 'What would you like to do?',
   });
 
   if (!prompt) {
-    console.log("No prompt provided. Exiting.");
+    console.log('No prompt provided. Exiting.');
     return;
   }
 
   const messages = [
-    { role: "system", content: SYSTEM_PROMPT },
-    { role: "user", content: prompt },
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: prompt },
   ];
 
   while (true) {
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: 'gpt-4',
       messages: messages,
     });
 
@@ -144,31 +64,31 @@ async function main() {
     try {
       parsedContent = JSON.parse(rawContent);
     } catch (error) {
-      console.log("Error parsing JSON from model:", rawContent);
-      break;
+        console.log('Error parsing JSON from model:', rawContent);
+        break;
     }
 
+
     messages.push({
-      role: "assistant",
+      role: 'assistant',
       content: JSON.stringify(parsedContent),
     });
 
-    if (parsedContent.step === "START") {
-      console.log(`🔥`, parsedContent);
+    if (parsedContent.step === 'START') {
+      console.log(`🔥`, parsedContent.content);
       continue;
     }
 
-    if (parsedContent.step === "THINK") {
-      console.log(`	🧠`, parsedContent);
+    if (parsedContent.step === 'THINK') {
+      console.log(`	🧠`, parsedContent.content);
       continue;
     }
 
-    if (parsedContent.step === "TOOL") {
-      console.log(`TOOL>>>>>>>`, parsedContent);
+    if (parsedContent.step === 'TOOL') {
       const toolToCall = parsedContent.tool_name;
       if (!TOOL_MAP[toolToCall]) {
         messages.push({
-          role: "developer",
+          role: 'developer',
           content: `There is no such tool as ${toolToCall}`,
         });
         continue;
@@ -181,19 +101,19 @@ async function main() {
         responseFromTool
       );
       messages.push({
-        role: "developer",
-        content: JSON.stringify({ step: "OBSERVE", content: responseFromTool }),
+        role: 'developer',
+        content: JSON.stringify({ step: 'OBSERVE', content: responseFromTool }),
       });
       continue;
     }
 
-    if (parsedContent.step === "OUTPUT") {
+    if (parsedContent.step === 'OUTPUT') {
       console.log(`🤖`, parsedContent.content);
       break;
     }
   }
 
-  console.log("Done...");
+  console.log('Done...');
 }
 
 main();
