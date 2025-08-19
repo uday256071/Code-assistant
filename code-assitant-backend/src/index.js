@@ -55,7 +55,7 @@ async function main() {
 
   while (true) {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4.1',
       messages: messages,
     });
 
